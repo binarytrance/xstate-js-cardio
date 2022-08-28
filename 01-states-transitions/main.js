@@ -10,11 +10,38 @@ import { inspect } from '@xstate/inspect';
 //   url: 'https://stately.ai/viz?inspect',
 // });
 
-const playerMachine = createMachine({});
-
+const playerMachine = createMachine({
+  initial: 'loading',
+  states: {
+    loading: {
+      on: {
+        LOADED: {
+          target: 'playing'
+        }
+      }
+    },
+    playing: {
+      on: {
+        PAUSE: {
+          target: 'paused'
+        }
+      }
+    },
+    paused: {
+      on: {
+        PLAY: {
+          target: 'playing'
+        }
+      }
+    }
+  }
+});
+// starts the service so that it can receive events
 const service = interpret(playerMachine, { devTools: true }).start();
 
 elements.elPlayButton.addEventListener('click', () => {
+  // only thing that should happend inside event listeners is sending events
+  // centralise and simplify the app logic
   service.send({ type: 'PLAY' });
 });
 elements.elPauseButton.addEventListener('click', () => {
@@ -29,3 +56,5 @@ service.subscribe((state) => {
 });
 
 service.send({ type: 'LOADED' });
+
+window.service = service
